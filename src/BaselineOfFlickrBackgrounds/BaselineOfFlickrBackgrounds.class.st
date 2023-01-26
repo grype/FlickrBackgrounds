@@ -1,11 +1,11 @@
 Class {
-	#name : #BaselineOfFlickrBackgroundsDraft,
+	#name : #BaselineOfFlickrBackgrounds,
 	#superclass : #BaselineOf,
 	#category : #BaselineOfFlickrBackgrounds
 }
 
 { #category : #baselines }
-BaselineOfFlickrBackgroundsDraft >> baseline: spec [
+BaselineOfFlickrBackgrounds >> baseline: spec [
 
 	<baseline>
 	spec for: #common do: [ 
@@ -17,7 +17,7 @@ BaselineOfFlickrBackgroundsDraft >> baseline: spec [
 ]
 
 { #category : #'external projects' }
-BaselineOfFlickrBackgroundsDraft >> declareFlickrOn: spec [
+BaselineOfFlickrBackgrounds >> declareFlickrOn: spec [
 	spec
 		baseline: 'Flickr'
 		with: [ spec repository: 'github://grype/Flickr-Pharo:main/src' ]
