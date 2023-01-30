@@ -18,7 +18,9 @@ BaselineOfFlickrBackgrounds >> baseline: spec [
 
 { #category : #'external projects' }
 BaselineOfFlickrBackgrounds >> declareFlickrOn: spec [
-	spec
-		baseline: 'Flickr'
-		with: [ spec repository: 'github://grype/Flickr-Pharo:main/src' ]
+
+	spec baseline: 'Flickr' with: [ 
+		spec
+			loads: #( core );
+			repository: 'github://grype/Flickr-Pharo:main/src' ]
 ]
