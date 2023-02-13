@@ -191,9 +191,10 @@ FlickrBackgrounds >> formForPhoto: aPhoto [
 	| size url sizeSpec |
 
 	sizeSpec := (self class flickr photoWithId: aPhoto id) sizes.
-	size := (sizeSpec smallestSizeExceeding:
-		         self class preferredWidth @ self class preferredHeight) 
-		        ifNil: [ sizeSpec largestSize ].
+	size := (sizeSpec
+		         smallestSizeExceeding:
+		         self class preferredWidth @ self class preferredHeight
+		         forMedia: #photo) ifNil: [ sizeSpec largestSize ].
 	url := size source asUrl.
 	^ Form fromBinaryStream: url retrieveContents readStream
 ]
