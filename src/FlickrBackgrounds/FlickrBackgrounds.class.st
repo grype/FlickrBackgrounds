@@ -180,6 +180,8 @@ FlickrBackgrounds >> endpoint [
 		  ifNotNil: [ :aQuery | 
 			  self class flickr photos search
 				  text: aQuery;
+				  beSafe;
+				  filterPublic;
 				  yourself ]
 ]
 
