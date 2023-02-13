@@ -1,6 +1,10 @@
 Class {
 	#name : #FlickrBackgrounds,
 	#superclass : #Object,
+	#instVars : [
+		'generator',
+		'query'
+	],
 	#classInstVars : [
 		'PreferredWidth',
 		'PreferredHeight',
@@ -10,12 +14,6 @@ Class {
 	],
 	#category : #FlickrBackgrounds
 }
-
-{ #category : #'user interaction' }
-FlickrBackgrounds class >> alertNoImageFound [
-
-	^ Smalltalk uiManager alert: 'Could not find a suitable image!'
-]
 
 { #category : #accessing }
 FlickrBackgrounds class >> apiKey [
@@ -109,32 +107,6 @@ FlickrBackgrounds class >> preferredWidth: anObject [
 	PreferredWidth := anObject
 ]
 
-{ #category : #fetching }
-FlickrBackgrounds class >> randomImageUrl [
-
-	| flickr size |
-	flickr := self flickr.
-	^ (flickr interestingness first: SampleSize) shuffled
-		  detect: [ :photo | 
-			  size := self smallestFittingSizeFor: photo.
-			  size isNotNil ]
-		  ifFound: [ :photo | size source ]
-		  ifNone: [ self alertNoImageFound ]
-]
-
-{ #category : #fetching }
-FlickrBackgrounds class >> randomImageUrlForQuery: aString [
-
-	| flickr size |
-	flickr := self flickr.
-	^ (flickr photos search text: aString; first: SampleSize) shuffled
-		  detect: [ :photo | 
-			  size := self smallestFittingSizeFor: photo.
-			  size isNotNil ]
-		  ifFound: [ :photo | size source ]
-		  ifNone: [ self alertNoImageFound ]
-]
-
 { #category : #accessing }
 FlickrBackgrounds class >> sampleSize [
 
@@ -199,4 +171,77 @@ FlickrBackgrounds class >> worldMenuOn: aBuilder [
 		help: 'Sets background of this world to a random image';
 		icon: (self iconNamed: #image);
 		action: [ FlickrBackgroundsPresenter new open ]
+]
+
+{ #category : #initialization }
+FlickrBackgrounds >> endpoint [
+	^ query
+		  ifNil: [ self class flickr interestingness ]
+		  ifNotNil: [ :aQuery | 
+			  self class flickr photos search
+				  text: aQuery;
+				  yourself ]
+]
+
+{ #category : #initialization }
+FlickrBackgrounds >> formForPhoto: aPhoto [
+	| size url sizeSpec |
+
+	sizeSpec := (self class flickr photoWithId: aPhoto id) sizes.
+	size := (sizeSpec smallestSizeExceeding:
+		         self class preferredWidth @ self class preferredHeight) 
+		        ifNil: [ sizeSpec largestSize ].
+	url := size source asUrl.
+	^ Form fromBinaryStream: url retrieveContents readStream
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> generator [
+	^ generator ifNil: [ 
+		  self initializeGenerator.
+		  generator ]
+]
+
+{ #category : #initialization }
+FlickrBackgrounds >> initializeGenerator [
+	generator := Generator on: [ :aGenerator | 
+		             | cursor |
+
+		             cursor := FlickrPageCursor new
+			                       page: 1;
+			                       pageSize: 100;
+			                       yourself.
+			
+		             [ cursor hasMore ] whileTrue: [ 
+			             (self endpoint nextWith: cursor) shuffled do: [ 
+				             :aPhoto | 
+				             aGenerator yield: (self formForPhoto: aPhoto) ] ] ]
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> nextPhoto [
+	^ self generator next
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> query [
+
+	^ query
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> query: anObject [
+	| newValue |
+
+	newValue := anObject isEmptyOrNil
+		            ifTrue: [ nil ]
+		            ifFalse: [ anObject ].
+	query ~= newValue ifFalse: [ ^ self ].
+	query := newValue.
+	generator := nil
+]
+
+{ #category : #initialization }
+FlickrBackgrounds >> reset [
+	generator := nil
 ]
