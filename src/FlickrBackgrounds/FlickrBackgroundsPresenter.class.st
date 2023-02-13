@@ -99,9 +99,3 @@ FlickrBackgroundsPresenter >> setBackground: aForm [
 		1 seconds wait.
 		Display fullscreen: false ] fork ]
 ]
-
-{ #category : #accessing }
-FlickrBackgroundsPresenter >> setBackgroundFromUrl: aUrl [
-	self setBackground:
-		(Form fromBinaryStream: (ZnEasy get: aUrl asUrl) entity readStream)
-]
