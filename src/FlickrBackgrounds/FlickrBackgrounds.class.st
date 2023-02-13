@@ -181,6 +181,7 @@ FlickrBackgrounds >> endpoint [
 			  self class flickr photos search
 				  text: aQuery;
 				  beSafe;
+				  beForPhotosOnly;
 				  filterPublic;
 				  yourself ]
 ]
