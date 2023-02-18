@@ -3,7 +3,9 @@ Class {
 	#superclass : #Object,
 	#instVars : [
 		'generator',
-		'query'
+		'query',
+		'preferredSize',
+		'flickr'
 	],
 	#classInstVars : [
 		'PreferredWidth',
@@ -173,31 +175,37 @@ FlickrBackgrounds class >> worldMenuOn: aBuilder [
 		action: [ FlickrBackgroundsPresenter new open ]
 ]
 
-{ #category : #initialization }
+{ #category : #private }
 FlickrBackgrounds >> endpoint [
+
 	^ query
-		  ifNil: [ self class flickr interestingness ]
+		  ifNil: [ self flickr interestingness ]
 		  ifNotNil: [ :aQuery | 
-			  self class flickr photos search
+			  self flickr photos search
 				  text: aQuery;
 				  beSafe;
 				  beForPhotoMedia;
-				beForPhotosOnlyContentType;
+				  beForPhotosOnlyContentType;
 				  filterPublic;
 				  yourself ]
 ]
 
-{ #category : #initialization }
-FlickrBackgrounds >> formForPhoto: aPhoto [
-	| size url sizeSpec |
+{ #category : #private }
+FlickrBackgrounds >> ensureDirectoryAt: aPath [
 
-	sizeSpec := (self class flickr photoWithId: aPhoto id) sizes.
-	size := (sizeSpec
-		         smallestSizeExceeding:
-		         self class preferredWidth @ self class preferredHeight
-		         forMedia: #photo) ifNil: [ sizeSpec largestSize ].
-	url := size source asUrl.
-	^ Form fromBinaryStream: url retrieveContents readStream
+	| dir |
+	dir := aPath asFileReference.
+	dir isDirectory ifFalse: [ 
+		dir exists
+			ifTrue: [ Error signal: ('Not a directory: {1}' format: { aPath }) ]
+			ifFalse: [ dir createDirectory ] ].
+	^ dir
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> flickr [
+
+	^ flickr ifNil: [ flickr := self class flickr ]
 ]
 
 { #category : #accessing }
@@ -209,23 +217,42 @@ FlickrBackgrounds >> generator [
 
 { #category : #initialization }
 FlickrBackgrounds >> initializeGenerator [
+
 	generator := Generator on: [ :aGenerator | 
 		             | cursor |
-
 		             cursor := FlickrPageCursor new
 			                       page: 1;
 			                       pageSize: 100;
 			                       yourself.
-			
-		             [ cursor hasMore ] whileTrue: [ 
-			             (self endpoint nextWith: cursor) shuffled do: [ 
-				             :aPhoto | 
-				             aGenerator yield: (self formForPhoto: aPhoto) ] ] ]
+		             self flickr
+			             do: [ 
+				             (self endpoint nextWith: cursor) shuffled do: [ 
+					             :aPhoto | 
+					             (aPhoto sizeSpec
+						              smallestSizeExceeding: self preferredSize
+						              forMedia: #photo) ifNotNil: [ :aSize | 
+						             aGenerator yield: aPhoto ] ] ]
+			             whileTrue: [ cursor hasMore ] ]
 ]
 
 { #category : #accessing }
-FlickrBackgrounds >> nextPhoto [
+FlickrBackgrounds >> next [
+
 	^ self generator next
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> preferredSize [
+
+	^ preferredSize ifNil: [ 
+		  preferredSize := self class preferredWidth
+		                   @ self class preferredHeight ]
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> preferredSize: anObject [
+
+	preferredSize := anObject
 ]
 
 { #category : #accessing }
@@ -246,7 +273,7 @@ FlickrBackgrounds >> query: anObject [
 	generator := nil
 ]
 
-{ #category : #initialization }
+{ #category : #resetting }
 FlickrBackgrounds >> reset [
 	generator := nil
 ]
