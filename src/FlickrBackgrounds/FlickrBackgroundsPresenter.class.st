@@ -81,13 +81,20 @@ FlickrBackgroundsPresenter >> initializeWindow: aWindowPresenter [
 
 { #category : #accessing }
 FlickrBackgroundsPresenter >> search [
-	| query |
 
+	| query |
 	query := keyword text trimBoth.
 	flickrBackgrounds query: query.
-	flickrBackgrounds nextPhoto
+	flickrBackgrounds next
 		ifNil: [ self alertNextPhotoNotFound ]
-		ifNotNil: [ :aForm | self setBackground: aForm ]
+		ifNotNil: [ :aPhoto | 
+			| size |
+			size := aPhoto sizeSpec
+				        smallestSizeExceeding: flickrBackgrounds preferredSize
+				        forMedia: #photo.
+			self setBackground:
+				(Form fromBinaryStream:
+					 size source asUrl retrieveContents readStream) ]
 ]
 
 { #category : #accessing }
