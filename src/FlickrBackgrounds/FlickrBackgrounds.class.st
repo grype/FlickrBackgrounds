@@ -202,6 +202,30 @@ FlickrBackgrounds >> ensureDirectoryAt: aPath [
 	^ dir
 ]
 
+{ #category : #saving }
+FlickrBackgrounds >> fillDirectoryAt: aPath withAtMost: aLimit [
+
+	| dir oldFiles photo url destination newFiles |
+	dir := self ensureDirectoryAt: aPath.
+	oldFiles := dir files.
+	newFiles := OrderedCollection new.
+	self flickr
+		do: [ 
+			photo := self generator next.
+			photo ifNil: [ ^ self ].
+			(photo sizeSpec
+				 smallestSizeExceeding: self preferredSize
+				 forMedia: #photo) ifNotNil: [ :aSize | 
+				url := aSize source asUrl.
+				destination := dir / url pathSegments last.
+				newFiles add: destination.
+				(oldFiles includes: destination) ifFalse: [ 
+					url saveContentsToFile: destination ] ] ]
+		whileTrue: [ newFiles size < aLimit ].
+
+	(oldFiles copyWithoutAll: newFiles) do: [ :aFile | aFile delete ]
+]
+
 { #category : #accessing }
 FlickrBackgrounds >> flickr [
 
