@@ -205,24 +205,41 @@ FlickrBackgrounds >> ensureDirectoryAt: aPath [
 { #category : #saving }
 FlickrBackgrounds >> fillDirectoryAt: aPath withAtMost: aLimit [
 
-	| dir oldFiles photo url destination newFiles |
+	| dir oldFiles newFiles pool photos sema count |
 	dir := self ensureDirectoryAt: aPath.
 	oldFiles := dir files.
 	newFiles := OrderedCollection new.
-	self flickr
-		do: [ 
-			photo := self generator next.
-			photo ifNil: [ ^ self ].
-			(photo sizeSpec
-				 smallestSizeExceeding: self preferredSize
-				 forMedia: #photo) ifNotNil: [ :aSize | 
-				url := aSize source asUrl.
-				destination := dir / url pathSegments last.
-				newFiles add: destination.
-				(oldFiles includes: destination) ifFalse: [ 
-					url saveContentsToFile: destination ] ] ]
-		whileTrue: [ newFiles size < aLimit ].
 
+	pool := TKTWorkerPool new
+		        poolMaxSize: (aLimit odd
+				         ifTrue: [ 3 ]
+				         ifFalse: [ 4 ]);
+		        start;
+		        yourself.
+
+	photos := self next: aLimit.
+	sema := Semaphore new.
+	count := 0.
+	photos do: [ :aPhoto | 
+		| path |
+		path := dir / (aPhoto id asString , '.jpg').
+		path exists ifTrue: [ path delete ].
+
+		(pool future: [ 
+				 self flickr do: [ 
+						 (aPhoto sizeSpec
+							  smallestSizeExceeding: self preferredSize
+							  forMedia: #photo) source asUrl saveContentsToFile: path.
+						 newFiles add: path ] ])
+			onFailureDo: [ :e | 
+				WrapperSignal emit: e.
+				count := count + 1 ];
+			onSuccessDo: [ :f | 
+				count := count + 1.
+				count = photos size ifTrue: [ sema signal ] ] ].
+
+	sema wait.
+	pool stop.
 	(oldFiles copyWithoutAll: newFiles) do: [ :aFile | aFile delete ]
 ]
 
@@ -263,6 +280,16 @@ FlickrBackgrounds >> initializeGenerator [
 FlickrBackgrounds >> next [
 
 	^ self generator next
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> next: aLimit [
+
+	| result |
+	result := OrderedCollection new.
+	[ self generator atEnd not and: [ result size < aLimit ] ] whileTrue: [ 
+		result add: self next ].
+	^ result
 ]
 
 { #category : #accessing }
