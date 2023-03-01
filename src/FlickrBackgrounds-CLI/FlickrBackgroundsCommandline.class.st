@@ -4,41 +4,36 @@ Class {
 	#category : #'FlickrBackgrounds-CLI'
 }
 
-{ #category : #'as yet unclassified' }
-FlickrBackgroundsCommandline class >> updateBackgrounds [
+{ #category : #commands }
+FlickrBackgroundsCommandline class >> fill [
 	<commandline>
-	^ (ClapCommand id: #updateBackgrounds)
+	^ (ClapCommand id: #fill)
 		  description:
-			  'Downloads most recent images from Flickr Interestingness';
+			  'Fills a directory with random images from the Flickr Interestingness project';
 		  add: ClapFlag forHelp;
-		  add: ((ClapFlag id: #destination) description:
-					   'Directory to download images to');
+		  add:
+			  ((ClapFlag id: #destination) description: 'Destination directory');
 		  add:
 			  ((ClapFlag id: #count) description:
 					   'Maximum number of images to keep');
 		  add: ((ClapFlag id: #width)
 				   description: 'Preferred image width';
-				   defaultValue: FlickrBackgrounds preferredWidth);
+				   implicitMeaning: [ FlickrBackgrounds preferredWidth ]);
 		  add: ((ClapFlag id: #height)
 				   description: 'Preferred image height';
-				   defaultValue: FlickrBackgrounds preferredHeight);
+				   implicitMeaning: [ FlickrBackgrounds preferredHeight ]);
 		  meaning: [ :args | 
-			  args at: #helpFlag ifPresent: [ :help | 
-				  help
+			  args at: ClapFlag forHelp canonicalName ifPresent: [ :help | 
+				  ^ help
 					  value;
 					  exitSuccess ].
 			  (self with: args) execute ]
 ]
 
 { #category : #execution }
-FlickrBackgroundsCommandline >> canUsePhoto: aPhoto [
-	^ true
-]
-
-{ #category : #execution }
 FlickrBackgroundsCommandline >> destination [
 
-	^ arguments at: #destination
+	^ arguments at: #destination ifAbsent: nil
 ]
 
 { #category : #execution }
