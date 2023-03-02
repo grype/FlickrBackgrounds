@@ -28,9 +28,8 @@ BaselineOfFlickrBackgrounds >> declareFlickrOn: spec [
 
 { #category : #'external projects' }
 BaselineOfFlickrBackgrounds >> declareTaskItOn: spec [
-
-	spec
-		baseline: 'TaskIt'
-		with: [ 
-		spec repository: 'github://pharo-contributions/taskit:v1.2.0' ]
+	spec baseline: 'TaskIt' with: [ 
+		spec
+			loads: #( core );
+			repository: 'github://pharo-contributions/taskit:v1.2.0' ]
 ]
