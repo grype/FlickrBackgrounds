@@ -49,28 +49,13 @@ FlickrBackgroundsCommandline >> existingFiles [
 
 { #category : #execution }
 FlickrBackgroundsCommandline >> fetchImages [
-	| existingFiles sizeSpecs preferredSize maxCount |
+	| bg |
 
-	preferredSize := self preferredSize.
-	maxCount := self maxCount.
-	sizeSpecs := OrderedCollection new.
+	bg := FlickrBackgrounds new
+		      preferredSize: self preferredSize;
+		      yourself.
 
-	self flickr interestingness
-		pageSize: (maxCount min: 10);
-		do: [ :aPhoto | 
-			((self flickr photoWithId: aPhoto id) sizes smallestSizeExceeding:
-					 preferredSize) ifNotNil: [ :val | sizeSpecs add: val ] ]
-		whileTrue: [ sizeSpecs size < maxCount ].
-
-	existingFiles := self existingFiles select: [ :aFile | 
-		                 aFile path segments last ].
-
-	sizeSpecs
-		collect: [ :aSize | aSize source asUrl ]
-		thenDo: [ :aUrl | 
-			(existingFiles contains: aUrl segments last) ifFalse: [ 
-				aUrl asZnUrl saveContentsToFile:
-					(self destination asPath resolve: aUrl segments last) ] ]
+	bg fillDirectoryAt: self destination withAtMost: self maxCount
 ]
 
 { #category : #accessing }
