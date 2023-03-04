@@ -6,7 +6,6 @@ Class {
 
 { #category : #baselines }
 BaselineOfFlickrBackgrounds >> baseline: spec [
-
 	<baseline>
 	spec for: #common do: [ 
 		self declareFlickrOn: spec.
@@ -14,7 +13,13 @@ BaselineOfFlickrBackgrounds >> baseline: spec [
 
 		spec
 			package: 'FlickrBackgrounds'
-			with: [ spec requires: #( 'Flickr' ) ] ]
+			with: [ spec requires: #( 'Flickr' ) ];
+			package: 'FlickrBackgrounds-CLI'
+			with: [ spec requires: #( FlickrBackgrounds ) ].
+
+		spec
+			group: 'default' with: #( FlickBackgrounds );
+			group: 'cli' with: #( default #'FlickrBackgrounds-CLI' ) ]
 ]
 
 { #category : #'external projects' }
