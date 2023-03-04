@@ -18,7 +18,7 @@ BaselineOfFlickrBackgrounds >> baseline: spec [
 			with: [ spec requires: #( FlickrBackgrounds ) ].
 
 		spec
-			group: 'default' with: #( FlickBackgrounds );
+			group: 'default' with: #( FlickrBackgrounds );
 			group: 'cli' with: #( default #'FlickrBackgrounds-CLI' ) ]
 ]
 
