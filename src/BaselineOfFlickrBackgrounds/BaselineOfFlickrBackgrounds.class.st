@@ -10,6 +10,7 @@ BaselineOfFlickrBackgrounds >> baseline: spec [
 	spec for: #common do: [ 
 		self declareFlickrOn: spec.
 		self declareTaskItOn: spec.
+		self declareClapOn: spec.
 
 		spec
 			package: 'FlickrBackgrounds'
@@ -19,7 +20,16 @@ BaselineOfFlickrBackgrounds >> baseline: spec [
 
 		spec
 			group: 'default' with: #( FlickrBackgrounds );
-			group: 'cli' with: #( default #'FlickrBackgrounds-CLI' ) ]
+			group: 'cli' with: #( default #'FlickrBackgrounds-CLI'
+				   Clap ) ]
+]
+
+{ #category : #'external projects' }
+BaselineOfFlickrBackgrounds >> declareClapOn: spec [
+	spec baseline: 'Clap' with: [ 
+		spec
+			loads: #( core pharo);
+			repository: 'github://cdlm/clap-st/src' ]
 ]
 
 { #category : #'external projects' }
