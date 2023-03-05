@@ -23,10 +23,10 @@ FlickrBackgroundsCommandline class >> fill [
 				   description: 'Preferred image height';
 				   implicitMeaning: [ FlickrBackgrounds preferredHeight ]);
 		  meaning: [ :args | 
-			  args at: ClapFlag forHelp canonicalName ifPresent: [ :help | 
+			  args at: ClapFlag forHelp ifPresent: [ :help | 
 				  ^ help
-					  value;
-					  exitSuccess ].
+					    value;
+					    exitSuccess ].
 			  (self with: args) execute ]
 ]
 
