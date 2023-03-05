@@ -12,7 +12,7 @@ FlickrBackgroundsCommandline class >> fill [
 			  'Fills a directory with random images from the Flickr Interestingness project';
 		  add: ClapFlag forHelp;
 		  add:
-			  ((ClapFlag id: #destination) description: 'Destination directory');
+			  ((ClapFlag id: #destination) description: 'Destination directory'; implicitMeaning: Path workingDirectory);
 		  add:
 			  ((ClapFlag id: #count) description:
 					   'Maximum number of images to keep');
