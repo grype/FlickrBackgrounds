@@ -4,10 +4,22 @@ Class {
 	#instVars : [
 		'searchButton',
 		'fullscreen',
-		'keyword'
+		'keyword',
+		'flickrBackgrounds'
 	],
 	#category : #FlickrBackgrounds
 }
+
+{ #category : #accessing }
+FlickrBackgroundsPresenter >> alertNextPhotoNotFound [
+	^ Smalltalk uiManager alert: 'Can''t find a photo'
+]
+
+{ #category : #initialization }
+FlickrBackgroundsPresenter >> initialize [
+	super initialize.
+	flickrBackgrounds := FlickrBackgrounds new
+]
 
 { #category : #initialization }
 FlickrBackgroundsPresenter >> initializeFullscreen [
@@ -40,7 +52,6 @@ FlickrBackgroundsPresenter >> initializeLayout [
 
 { #category : #initialization }
 FlickrBackgroundsPresenter >> initializePresenters [
-
 	self initializeKeyword.
 	self initializeFullscreen.
 	self initializeSearchButton.
@@ -73,21 +84,23 @@ FlickrBackgroundsPresenter >> search [
 
 	| query |
 	query := keyword text trimBoth.
-	(query
-		 ifEmpty: [ FlickrBackgrounds randomImageUrl ]
-		 ifNotEmpty: [ FlickrBackgrounds randomImageUrlForQuery: query ])
-		ifNil: [ self alert: 'Sorry, couldn''t find anything!' ]
-		ifNotNil: [ :url | self setBackgroundFromUrl: url ]
+	flickrBackgrounds query: query.
+	flickrBackgrounds next
+		ifNil: [ self alertNextPhotoNotFound ]
+		ifNotNil: [ :aPhoto | 
+			| size |
+			size := aPhoto sizeSpec
+				        smallestSizeExceeding: flickrBackgrounds preferredSize
+				        forMedia: #photo.
+			self setBackground:
+				(Form fromBinaryStream:
+					 size source asUrl retrieveContents readStream) ]
 ]
 
 { #category : #accessing }
-FlickrBackgroundsPresenter >> setBackgroundFromUrl: aUrl [
-
+FlickrBackgroundsPresenter >> setBackground: aForm [
 	fullscreen state ifTrue: [ Display fullscreen: true ].
-	self currentWorld
-		backgroundImage:
-		(Form fromBinaryStream: (ZnEasy get: aUrl asUrl) entity readStream)
-		layout: #fitAspect.
+	self currentWorld backgroundImage: aForm layout: #fitAspect.
 	fullscreen state ifTrue: [ 
 		[ 
 		1 seconds wait.

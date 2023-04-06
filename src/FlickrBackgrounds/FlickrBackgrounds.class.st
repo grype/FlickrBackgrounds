@@ -1,6 +1,12 @@
 Class {
 	#name : #FlickrBackgrounds,
 	#superclass : #Object,
+	#instVars : [
+		'generator',
+		'query',
+		'preferredSize',
+		'flickr'
+	],
 	#classInstVars : [
 		'PreferredWidth',
 		'PreferredHeight',
@@ -10,12 +16,6 @@ Class {
 	],
 	#category : #FlickrBackgrounds
 }
-
-{ #category : #'user interaction' }
-FlickrBackgrounds class >> alertNoImageFound [
-
-	^ Smalltalk uiManager alert: 'Could not find a suitable image!'
-]
 
 { #category : #accessing }
 FlickrBackgrounds class >> apiKey [
@@ -109,32 +109,6 @@ FlickrBackgrounds class >> preferredWidth: anObject [
 	PreferredWidth := anObject
 ]
 
-{ #category : #fetching }
-FlickrBackgrounds class >> randomImageUrl [
-
-	| flickr size |
-	flickr := self flickr.
-	^ (flickr interestingness first: SampleSize) shuffled
-		  detect: [ :photo | 
-			  size := self smallestFittingSizeFor: photo.
-			  size isNotNil ]
-		  ifFound: [ :photo | size source ]
-		  ifNone: [ self alertNoImageFound ]
-]
-
-{ #category : #fetching }
-FlickrBackgrounds class >> randomImageUrlForQuery: aString [
-
-	| flickr size |
-	flickr := self flickr.
-	^ (flickr photos search text: aString; first: SampleSize) shuffled
-		  detect: [ :photo | 
-			  size := self smallestFittingSizeFor: photo.
-			  size isNotNil ]
-		  ifFound: [ :photo | size source ]
-		  ifNone: [ self alertNoImageFound ]
-]
-
 { #category : #accessing }
 FlickrBackgrounds class >> sampleSize [
 
@@ -199,4 +173,158 @@ FlickrBackgrounds class >> worldMenuOn: aBuilder [
 		help: 'Sets background of this world to a random image';
 		icon: (self iconNamed: #image);
 		action: [ FlickrBackgroundsPresenter new open ]
+]
+
+{ #category : #private }
+FlickrBackgrounds >> endpoint [
+
+	^ query
+		  ifNil: [ self flickr interestingness ]
+		  ifNotNil: [ :aQuery | 
+			  self flickr photos search
+				  text: aQuery;
+				  beSafe;
+				  beForPhotoMedia;
+				  beForPhotosOnlyContentType;
+				  filterPublic;
+				  yourself ]
+]
+
+{ #category : #private }
+FlickrBackgrounds >> ensureDirectoryAt: aPath [
+
+	| dir |
+	dir := aPath asFileReference.
+	dir isDirectory ifFalse: [ 
+		dir exists
+			ifTrue: [ Error signal: ('Not a directory: {1}' format: { aPath }) ]
+			ifFalse: [ dir createDirectory ] ].
+	^ dir
+]
+
+{ #category : #saving }
+FlickrBackgrounds >> fillDirectoryAt: aPath withAtMost: aLimit [
+
+	| dir oldFiles newFiles pool photos sema count |
+	dir := self ensureDirectoryAt: aPath.
+	oldFiles := dir files.
+	newFiles := OrderedCollection new.
+
+	pool := TKTWorkerPool new
+		        poolMaxSize: (aLimit odd
+				         ifTrue: [ 3 ]
+				         ifFalse: [ 4 ]);
+		        start;
+		        yourself.
+
+	photos := self next: aLimit.
+	sema := Semaphore new.
+	count := 0.
+	photos do: [ :aPhoto | 
+		| path |
+		path := dir / (aPhoto id asString , '.jpg').
+		path exists ifTrue: [ path delete ].
+
+		(pool future: [ 
+				 self flickr do: [ 
+						 (aPhoto sizeSpec
+							  smallestSizeExceeding: self preferredSize
+							  forMedia: #photo) source asUrl saveContentsToFile: path.
+						 newFiles add: path ] ])
+			onFailureDo: [ :e | 
+				WrapperSignal emit: e.
+				count := count + 1 ];
+			onSuccessDo: [ :f | 
+				count := count + 1.
+				count = photos size ifTrue: [ sema signal ] ] ].
+
+	sema wait.
+	pool stop.
+	(oldFiles copyWithoutAll: newFiles) do: [ :aFile | aFile delete ]
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> flickr [
+
+	^ flickr ifNil: [ flickr := self class flickr ]
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> generator [
+	^ generator ifNil: [ 
+		  self initializeGenerator.
+		  generator ]
+]
+
+{ #category : #initialization }
+FlickrBackgrounds >> initializeGenerator [
+
+	generator := Generator on: [ :aGenerator | 
+		             | cursor |
+		             cursor := FlickrPageCursor new
+			                       page: 1;
+			                       pageSize: 100;
+			                       yourself.
+		             self flickr
+			             do: [ 
+				             (self endpoint nextWith: cursor) shuffled do: [ 
+					             :aPhoto | 
+					             (aPhoto sizeSpec
+						              smallestSizeExceeding: self preferredSize
+						              forMedia: #photo) ifNotNil: [ :aSize | 
+						             aGenerator yield: aPhoto ] ] ]
+			             whileTrue: [ cursor hasMore ] ]
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> next [
+
+	^ self generator next
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> next: aLimit [
+
+	| result |
+	result := OrderedCollection new.
+	[ self generator atEnd not and: [ result size < aLimit ] ] whileTrue: [ 
+		result add: self next ].
+	^ result
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> preferredSize [
+
+	^ preferredSize ifNil: [ 
+		  preferredSize := self class preferredWidth
+		                   @ self class preferredHeight ]
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> preferredSize: anObject [
+
+	preferredSize := anObject
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> query [
+
+	^ query
+]
+
+{ #category : #accessing }
+FlickrBackgrounds >> query: anObject [
+	| newValue |
+
+	newValue := anObject isEmptyOrNil
+		            ifTrue: [ nil ]
+		            ifFalse: [ anObject ].
+	query ~= newValue ifFalse: [ ^ self ].
+	query := newValue.
+	generator := nil
+]
+
+{ #category : #resetting }
+FlickrBackgrounds >> reset [
+	generator := nil
 ]
