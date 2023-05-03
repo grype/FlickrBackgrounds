@@ -1,17 +1,30 @@
 # FlickrBackgrounds
-Tiny tool to set Pharo's world background to a random image using Flickr API.
 
-```smalltalk
-Metacello new   
-    baseline: 'FlickrBackgrounds';     
-    onWarningLog;
-    repository: 'github://grype/FlickrBackgrounds:main/src';
-    load.
+Tiny tool to set Pharo's world background to a random image using Flickr API
 
-"Get yourself an API key on https://www.flickr.com/services/apps/create/"
-"And set it in Settings/Tools, or programatically:"
+# Quick Start
+
+## Installation via Script
+
+```Smalltalk
+Metacello new 
+	repository: 'github://grype/FlickrBackgrounds:main/src';
+	baseline: 'FlickrBackgrounds';
+	load
+```
+
+## API Keys
+
+To set the API key (see https://www.flickr.com/services/apps/create/)
+
+```Smalltalk
 FlickrBackgrounds apiKey: ''.
+```
 
-"Open the UI"
+## UI
+
+To open a simple UI for changing the background image
+
+```Smalltalk
 FlickrBackgroundsPresenter new open.
 ```
