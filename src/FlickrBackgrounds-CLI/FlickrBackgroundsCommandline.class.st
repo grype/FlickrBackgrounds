@@ -11,18 +11,30 @@ FlickrBackgroundsCommandline class >> fill [
 		  description:
 			  'Fills a directory with random images from the Flickr Interestingness project';
 		  add: ClapFlag forHelp;
-		  add:
-			  ((ClapFlag id: #destination) description: 'Destination directory');
-		  add:
-			  ((ClapFlag id: #count) description:
-					   'Maximum number of images to keep');
+		  add: ((ClapFlag id: #destination)
+				   description: 'Destination directory';
+				   add:
+					   ((ClapPositional id: #destinationValue) meaning: [ :pos :cmd | 
+							    pos word ]));
+		  add: ((ClapFlag id: #count)
+				   description: 'Maximum number of images to keep';
+				   add: ((ClapPositional id: #countValue) meaning: [ :pos :cmd | 
+							    pos word asInteger ]));
 		  add: ((ClapFlag id: #width)
 				   description: 'Preferred image width';
-				   implicitMeaning: [ FlickrBackgrounds preferredWidth ]);
+				   add: ((ClapPositional id: #widthValue)
+						    meaning: [ :pos :cmd | pos word asInteger ];
+						    implicitMeaning: [ FlickrBackgrounds preferredWidth ]));
 		  add: ((ClapFlag id: #height)
 				   description: 'Preferred image height';
-				   implicitMeaning: [ FlickrBackgrounds preferredHeight ]);
+				   add: ((ClapPositional id: #heightValue)
+						    meaning: [ :pos :cmd | pos word asInteger ];
+						    implicitMeaning: [ FlickrBackgrounds preferredHeight ]));
 		  meaning: [ :args | 
+			  args isValid ifFalse: [ 
+				  ClapFlag forHelp
+					  value;
+					  exitFailure ].
 			  args at: ClapFlag forHelp ifPresent: [ :help | 
 				  ^ help
 					    value;
@@ -32,7 +44,7 @@ FlickrBackgroundsCommandline class >> fill [
 
 { #category : #execution }
 FlickrBackgroundsCommandline >> destination [
-	^ arguments at: #destination ifAbsent: nil
+	^ arguments at: #destination ifPresent: [ :val | val positionalValues first asFileReference ] ifAbsent: nil 
 ]
 
 { #category : #execution }
@@ -64,7 +76,10 @@ FlickrBackgroundsCommandline >> flickr [
 
 { #category : #accessing }
 FlickrBackgroundsCommandline >> maxCount [
-	^ arguments at: #count ifAbsent: [ 10 ]
+	^ arguments
+		  at: #count
+		  ifPresent: [ :val | val positionalValues first asNumber ]
+		  ifAbsent: [ 10 ]
 ]
 
 { #category : #execution }
