@@ -43,6 +43,6 @@ BaselineOfFlickrBackgrounds >> declareFlickrOn: spec [
 BaselineOfFlickrBackgrounds >> declareTaskItOn: spec [
 	spec baseline: 'TaskIt' with: [ 
 		spec
-			loads: #( core );
+			loads: #( 'core' 'TaskItProcesses' 'TaskItRetry' 'TaskItDebugger' );
 			repository: 'github://pharo-contributions/taskit:v1.2.0' ]
 ]
