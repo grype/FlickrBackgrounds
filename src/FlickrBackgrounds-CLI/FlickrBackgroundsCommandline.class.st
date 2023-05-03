@@ -31,14 +31,10 @@ FlickrBackgroundsCommandline class >> fill [
 						    meaning: [ :pos :cmd | pos word asInteger ];
 						    implicitMeaning: [ FlickrBackgrounds preferredHeight ]));
 		  meaning: [ :args | 
-			  args isValid ifFalse: [ 
-				  ClapFlag forHelp
+			  args at: #helpFlag ifPresent: [ :help | 
+				  help
 					  value;
-					  exitFailure ].
-			  args at: ClapFlag forHelp ifPresent: [ :help | 
-				  ^ help
-					    value;
-					    exitSuccess ].
+					  exitSuccess ].
 			  (self with: args) execute ]
 ]
 
