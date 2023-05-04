@@ -5,9 +5,9 @@ Class {
 }
 
 { #category : #commands }
-FlickrBackgroundsCommandline class >> fill [
+FlickrBackgroundsCommandline class >> flickr [
 	<commandline>
-	^ (ClapCommand id: #fill)
+	^ (ClapCommand id: #flickr)
 		  description:
 			  'Fills a directory with random images from the Flickr Interestingness project';
 		  add: ClapFlag forHelp;

@@ -9,5 +9,7 @@ Class {
 
 { #category : #'code-critics' }
 ManifestFlickrBackgroundsCLI class >> ruleUsesAddRuleV1FalsePositive [
-	^ #(#(#(#RGMethodDefinition #(#'FlickrBackgroundsCommandline class' #fill #true)) #'2023-05-02T21:27:33.576996-07:00') )
+	^ #( #( #( #RGMethodDefinition #( #'FlickrBackgroundsCommandline class'
+	              #flickr #true ) )
+	        #'2023-05-03T23:35:48.309062-07:00' ) )
 ]
