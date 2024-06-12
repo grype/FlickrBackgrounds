@@ -1,10 +1,11 @@
 Class {
-	#name : #FlickrBackgroundsCommandline,
-	#superclass : #ClapApplication,
-	#category : #'FlickrBackgrounds-CLI'
+	#name : 'FlickrBackgroundsCommandline',
+	#superclass : 'ClapPharoApplication',
+	#category : 'FlickrBackgrounds-CLI',
+	#package : 'FlickrBackgrounds-CLI'
 }
 
-{ #category : #commands }
+{ #category : 'commands' }
 FlickrBackgroundsCommandline class >> flickr [
 	<commandline>
 	^ (ClapCommand id: #flickr)
@@ -38,23 +39,23 @@ FlickrBackgroundsCommandline class >> flickr [
 			  (self with: args) execute ]
 ]
 
-{ #category : #execution }
+{ #category : 'execution' }
 FlickrBackgroundsCommandline >> destination [
 	^ arguments at: #destination ifPresent: [ :val | val positionalValues first asFileReference ] ifAbsent: nil 
 ]
 
-{ #category : #execution }
+{ #category : 'execution' }
 FlickrBackgroundsCommandline >> execute [
 	self fetchImages
 ]
 
-{ #category : #execution }
+{ #category : 'execution' }
 FlickrBackgroundsCommandline >> existingFiles [
 
 	^ self destination asFileReference fileNames
 ]
 
-{ #category : #execution }
+{ #category : 'execution' }
 FlickrBackgroundsCommandline >> fetchImages [
 	| bg |
 
@@ -65,12 +66,12 @@ FlickrBackgroundsCommandline >> fetchImages [
 	bg fillDirectoryAt: self destination withAtMost: self maxCount
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 FlickrBackgroundsCommandline >> flickr [
 	^ FlickrBackgrounds flickr
 ]
 
-{ #category : #accessing }
+{ #category : 'accessing' }
 FlickrBackgroundsCommandline >> maxCount [
 	^ arguments
 		  at: #count
@@ -78,7 +79,7 @@ FlickrBackgroundsCommandline >> maxCount [
 		  ifAbsent: [ 10 ]
 ]
 
-{ #category : #execution }
+{ #category : 'execution' }
 FlickrBackgroundsCommandline >> preferredSize [
 
 	| width height |

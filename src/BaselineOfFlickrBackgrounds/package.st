@@ -1,1 +1,1 @@
-Package { #name : #BaselineOfFlickrBackgrounds }
+Package { #name : 'BaselineOfFlickrBackgrounds' }

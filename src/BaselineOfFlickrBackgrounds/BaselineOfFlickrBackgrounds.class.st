@@ -1,16 +1,16 @@
 Class {
-	#name : #BaselineOfFlickrBackgrounds,
-	#superclass : #BaselineOf,
-	#category : #BaselineOfFlickrBackgrounds
+	#name : 'BaselineOfFlickrBackgrounds',
+	#superclass : 'BaselineOf',
+	#category : 'BaselineOfFlickrBackgrounds',
+	#package : 'BaselineOfFlickrBackgrounds'
 }
 
-{ #category : #baselines }
+{ #category : 'baselines' }
 BaselineOfFlickrBackgrounds >> baseline: spec [
 	<baseline>
 	spec for: #common do: [ 
 		self declareFlickrOn: spec.
 		self declareTaskItOn: spec.
-		self declareClapOn: spec.
 
 		spec
 			package: 'FlickrBackgrounds'
@@ -20,26 +20,17 @@ BaselineOfFlickrBackgrounds >> baseline: spec [
 
 		spec
 			group: 'default' with: #( FlickrBackgrounds );
-			group: 'cli' with: #( default #'FlickrBackgrounds-CLI'
-				   Clap ) ]
+			group: 'cli' with: #( default #'FlickrBackgrounds-CLI' ) ]
 ]
 
-{ #category : #'external projects' }
-BaselineOfFlickrBackgrounds >> declareClapOn: spec [
-	spec baseline: 'Clap' with: [ 
-		spec
-			loads: #( core pharo);
-			repository: 'github://cdlm/clap-st/src' ]
-]
-
-{ #category : #'external projects' }
+{ #category : 'external projects' }
 BaselineOfFlickrBackgrounds >> declareFlickrOn: spec [
 	spec baseline: 'Flickr' with: [ 
 		spec
 			repository: 'github://grype/Flickr-Pharo:main/src' ]
 ]
 
-{ #category : #'external projects' }
+{ #category : 'external projects' }
 BaselineOfFlickrBackgrounds >> declareTaskItOn: spec [
 	spec baseline: 'TaskIt' with: [ 
 		spec

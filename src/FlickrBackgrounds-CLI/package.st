@@ -1,1 +1,1 @@
-Package { #name : #'FlickrBackgrounds-CLI' }
+Package { #name : 'FlickrBackgrounds-CLI' }
